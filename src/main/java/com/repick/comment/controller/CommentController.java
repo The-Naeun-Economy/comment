@@ -1,50 +1,49 @@
 package com.repick.comment.controller;
 
-import com.repick.comment.domain.Comment;
+import com.repick.comment.dto.CommentRequest;
+import com.repick.comment.dto.CommentResponse;
 import com.repick.comment.service.CommentService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/comments")
+@RequestMapping("/posts/{postId}/comments")
 @RequiredArgsConstructor
 public class CommentController {
 
-    private final CommentService service;
-
-    @GetMapping
-    public List<Comment> getComments() {
-        return service.getAllComments();
-    }
-
-    @GetMapping("/{id}")
-    public Comment getComment(@PathVariable Long id) {
-        return service.getCommentById(id);
-    }
+    private final CommentService commentService;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Comment createComment(@RequestBody CreateCommentRequest request) {
-        return service.createComment(request);
+    public CommentResponse createComment(@RequestHeader("USER-ID") Long userId,
+                                         @PathVariable Long postId,
+                                         @RequestBody CommentRequest request) {
+        return commentService.createComment(userId, postId, request);
     }
 
-    @PutMapping("/{id}")
-    public Comment updateComment(@RequestBody UpdateCommentRequest request) {
-        return service.updateComment(request);
+    @GetMapping
+    public List<CommentResponse> getCommentsByPost(@PathVariable Long postId) {
+        return commentService.getCommentsByPostId(postId);
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteComment(@PathVariable Long id) {
-        service.deleteComment(id);
+    @GetMapping("/users/{userId}")
+    public List<CommentResponse> getUserComments(@PathVariable Long userId) {
+        return commentService.getUserComments(userId);
+    }
+
+    @PutMapping("/{commentId}")
+    public CommentResponse updateComment(@RequestHeader("USER-ID") Long userId,
+                                         @PathVariable Long postId,
+                                         @PathVariable Long commentId,
+                                         @RequestBody String content) {
+        return commentService.updateComment(userId, postId, commentId, content);
+    }
+
+    @DeleteMapping("/{commentId}")
+    public void deleteComment(@RequestHeader("USER-ID") Long userId,
+                              @PathVariable Long postId,
+                              @PathVariable Long commentId) {
+        commentService.deleteComment(userId, postId, commentId);
     }
 }

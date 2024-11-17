@@ -1,13 +1,18 @@
 package com.repick.comment.service;
 
+import com.repick.comment.dto.CommentRequest;
+import com.repick.comment.dto.CommentResponse;
+
 import java.util.List;
 
 public interface CommentService {
-    List<CommentResponse> getAllcommentsByPostId(Long postId);
+    CommentResponse createComment(Long userId, Long postId, CommentRequest request);
 
-    CommentResponse createComment(Long userId, CommentRequest request);
+    List<CommentResponse> getCommentsByPostId(Long postId);
 
-    CommentResponse updateComment(Long userId, Long commentId, String content);
+    List<CommentResponse> getUserComments(Long userId);
 
-    void deleteComment(Long userId, Long commentId);
+    CommentResponse updateComment(Long userId, Long postId, Long commentId, String content);
+
+    void deleteComment(Long userId, Long postId, Long commentId);
 }
