@@ -1,6 +1,7 @@
 package com.repick.comment.controller;
 
 import com.repick.comment.domain.Comment;
+import com.repick.comment.service.CommentService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/comments")
 @RequiredArgsConstructor
 public class CommentController {
+
+    private final CommentService service;
 
     @GetMapping
     public List<Comment> getComments() {

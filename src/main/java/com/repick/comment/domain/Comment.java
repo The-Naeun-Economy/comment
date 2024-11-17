@@ -23,6 +23,10 @@ public class Comment extends BaseEntity {
     @Column(name = "comment_id")
     private Long id;
 
+    @NotNull
+    @Column(name = "post_id")
+    private Long postId;
+
     @Column(name = "user_id")
     @NotNull
     private Long userId;
@@ -42,5 +46,5 @@ public class Comment extends BaseEntity {
 
     @Column(name = "deleted")
     @NotNull
-    private boolean deleted = false;
+    private boolean isDeleted = false;
 }
