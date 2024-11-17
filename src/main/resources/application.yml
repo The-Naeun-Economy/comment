@@ -1,6 +1,10 @@
 server:
   port: 9001
 
+post:
+  service:
+    url: http://localhost:9000
+
 spring:
   application:
     name: repick-comment
