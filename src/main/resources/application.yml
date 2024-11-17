@@ -1,0 +1,14 @@
+server:
+  port: 9001
+
+spring:
+  application:
+    name: repick-comment
+  datasource:
+    url: jdbc:mysql://localhost:3311/repick-comment?serverTimezone=Asia/Seoul
+    username: dev
+    password: 1234
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
