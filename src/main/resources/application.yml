@@ -1,13 +1,13 @@
 server:
   port: 9001
 
-user:
-  service:
-    url: http://localhost:9002
-
-post:
-  service:
-    url: http://localhost:9000
+#user:
+#  service:
+#    url: http://localhost:9002
+#
+#post:
+#  service:
+#    url: http://localhost:9000
 
 spring:
   application:
