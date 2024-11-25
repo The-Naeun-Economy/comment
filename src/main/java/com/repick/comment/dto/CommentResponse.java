@@ -1,6 +1,5 @@
 package com.repick.comment.dto;
 
-import com.repick.comment.domain.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,15 +1,13 @@
 package com.repick.comment.service;
 
-//import com.repick.comment.client.PostClient;
-//import com.repick.comment.client.UserClient;
 import com.repick.comment.domain.Comment;
 import com.repick.comment.dto.CommentRequest;
 import com.repick.comment.dto.CommentResponse;
-import com.repick.comment.dto.UserResponse;
 import com.repick.comment.mapper.CommentMapper;
 import com.repick.comment.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,46 +17,20 @@ import java.util.stream.Collectors;
 public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
-//    private final UserClient userClient;
-//    private final PostClient postClient;
 
+    @Transactional
     @Override
-    public CommentResponse createComment(Long userId, Long postId, CommentRequest request) {
-//        UserResponse userResponse = userClient.getUserById(userId); // 결과를 변수에 저장
-//        if (userResponse == null) {
-//            throw new IllegalArgumentException("Invalid user ID");
-//        }
+    public CommentResponse createComment(Long userId, String userNickname, Long postId, CommentRequest request) {
 
-
-        // 유저 검증 (하드코딩된 Mock 데이터 사용)
-        if (userId == null || userId <= 0) {
-            throw new IllegalArgumentException("Invalid userId");
-        }
-        String mockUserNickname = "MockUser"; // 하드코딩된 닉네임
-//        // 게시글 검증
-//        if (!postClient.checkPostExists(postId)) {
-//            throw new IllegalArgumentException("Invalid post ID");
-//        }
-        // 게시글 검증 (하드코딩된 Mock 데이터 사용)
         if (postId == null || postId <= 0) {
             throw new IllegalArgumentException("Invalid post ID");
         }
-
-
-//        // 댓글 생성
-//        Comment comment = Comment.builder()
-//                .postId(postId)
-//                .userId(userId)
-//                .userNickname(userResponse.getNickname()) // 저장된 변수 사용
-//                .content(request.getContent())
-//                .isDeleted(false)
-//                .build();
 
         // 댓글 생성
         Comment comment = Comment.builder()
                 .postId(postId)
                 .userId(userId)
-                .userNickname(mockUserNickname) // Mock 데이터 사용
+                .userNickname(userNickname)
                 .content(request.getContent())
                 .isDeleted(false)
                 .build();
@@ -67,6 +39,7 @@ public class CommentServiceImpl implements CommentService {
         return CommentMapper.toResponse(savedComment);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<CommentResponse> getCommentsByPostId(Long postId) {
         return commentRepository.findByPostIdAndIsDeletedFalse(postId).stream()
@@ -74,39 +47,22 @@ public class CommentServiceImpl implements CommentService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public List<CommentResponse> getUserComments(Long userId) {
+    public List<CommentResponse> getMyComments(Long userId) {
         return commentRepository.findByUserIdAndIsDeletedFalse(userId).stream()
                 .map(CommentMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public CommentResponse updateComment(Long userId, Long postId, Long commentId, String content) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
 
-//        // 유저 검증
-//        if (!comment.getUserId().equals(userId)) {
-//            throw new SecurityException("You can only update your own comments");
-//        }
-//
-//        // 게시글 검증
-//        if (!comment.getPostId().equals(postId)) {
-//            throw new IllegalArgumentException("Post ID mismatch");
-//        }
-//
-//        // 댓글 업데이트
-//        comment.updateContent(content);
-//        Comment updatedComment = commentRepository.save(comment);
+        validateUserAuthorization(comment, userId);
 
-
-        // 유저 검증 (하드코딩된 Mock 데이터 사용)
-        if (!comment.getUserId().equals(userId)) {
-            throw new SecurityException("You can only update your own comments");
-        }
-
-        // 게시글 검증 (하드코딩된 Mock 데이터 사용)
         if (!comment.getPostId().equals(postId)) {
             throw new IllegalArgumentException("Post ID mismatch");
         }
@@ -120,27 +76,14 @@ public class CommentServiceImpl implements CommentService {
         return CommentMapper.toResponse(updatedComment);
     }
 
+    @Transactional
     @Override
     public void deleteComment(Long userId, Long postId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
 
-//        // 유저 검증
-//        if (!comment.getUserId().equals(userId)) {
-//            throw new SecurityException("You can only delete your own comments");
-//        }
-//
-//        // 게시글 검증
-//        if (!comment.getPostId().equals(postId)) {
-//            throw new IllegalArgumentException("Post ID mismatch");
-//        }
+        validateUserAuthorization(comment, userId);
 
-        // 유저 검증 (하드코딩된 Mock 데이터 사용)
-        if (!comment.getUserId().equals(userId)) {
-            throw new SecurityException("You can only delete your own comments");
-        }
-
-        // 게시글 검증 (하드코딩된 Mock 데이터 사용)
         if (!comment.getPostId().equals(postId)) {
             throw new IllegalArgumentException("Post ID mismatch");
         }
@@ -153,5 +96,12 @@ public class CommentServiceImpl implements CommentService {
         // 댓글 삭제 (Soft Delete)
         comment.softDelete();
         commentRepository.save(comment);
+    }
+
+    // 사용자 검증 로직
+    private void validateUserAuthorization(Comment comment, Long userId) {
+        if (!comment.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("You are not authorized to perform this action on this comment");
+        }
     }
 }
