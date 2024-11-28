@@ -1,6 +1,9 @@
 server:
   port: 9001
 
+jwt:
+  secret-key: 4Ixa3PT4KhLW1fz4bJoY8z2dR4Gk7jHpB3Yw8mQvL9NdXx5vT9Yw8VhN3rB4YxK2
+
 spring:
   application:
     name: repick-comment
