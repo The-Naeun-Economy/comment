@@ -1,5 +1,6 @@
 package com.repick.comment.service;
 
+import com.repick.comment.dto.CommentLikeResponse;
 import com.repick.comment.dto.CommentRequest;
 import com.repick.comment.dto.CommentResponse;
 
@@ -15,4 +16,6 @@ public interface CommentService {
     CommentResponse updateComment(Long userId, Long postId, Long commentId, String content);
 
     void deleteComment(Long userId, Long postId, Long commentId);
+
+    CommentLikeResponse toggleLike(Long id, Long userId, Long postId, String userNickname);
 }

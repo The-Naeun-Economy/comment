@@ -55,4 +55,18 @@ public class Comment extends BaseEntity {
     public void updateContent(String content) {
         this.content = content;
     }
+
+    public void incrementPostLikesCount() {
+        if (this.likesCount == null) {
+            this.likesCount = 1L;
+        } else {
+            this.likesCount += 1;
+        }
+    }
+
+    public void decrementLikeCount() {
+        if (this.likesCount > 0) {
+            this.likesCount -= 1;
+        }
+    }
 }

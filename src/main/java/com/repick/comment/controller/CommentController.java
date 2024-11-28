@@ -1,5 +1,6 @@
 package com.repick.comment.controller;
 
+import com.repick.comment.dto.CommentLikeResponse;
 import com.repick.comment.dto.CommentRequest;
 import com.repick.comment.dto.CommentResponse;
 import com.repick.comment.service.CommentService;
@@ -57,6 +58,16 @@ public class CommentController {
         Long userId = getAuthenticatedUserId();
         commentService.deleteComment(userId, postId, commentId);
         return ResponseEntity.noContent().build();
+    }
+
+    // 게시글 좋아요
+    @PostMapping("/{id}/like")
+    public ResponseEntity<CommentLikeResponse> likePost(@PathVariable Long id) {
+        Long userId = getAuthenticatedUserId();
+        String userNickname = getAuthenticatedUserNickname();
+
+        CommentLikeResponse response = commentService.toggleLike(id, userId, userNickname);
+        return ResponseEntity.ok(response);
     }
 
     private Long getAuthenticatedUserId() {

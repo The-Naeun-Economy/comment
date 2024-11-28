@@ -1,10 +1,14 @@
 package com.repick.comment.service;
 
 import com.repick.comment.domain.Comment;
+import com.repick.comment.domain.CommentLike;
+import com.repick.comment.dto.CommentLikeResponse;
 import com.repick.comment.dto.CommentRequest;
 import com.repick.comment.dto.CommentResponse;
 import com.repick.comment.mapper.CommentMapper;
+import com.repick.comment.repository.CommentLikeRepository;
 import com.repick.comment.repository.CommentRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +21,7 @@ import java.util.stream.Collectors;
 public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
     @Transactional
     @Override
@@ -96,6 +101,47 @@ public class CommentServiceImpl implements CommentService {
         // 댓글 삭제 (Soft Delete)
         comment.softDelete();
         commentRepository.save(comment);
+    }
+
+    @Override
+    public CommentLikeResponse toggleLike(Long id, Long userId, Long postId, String userNickname) {
+
+        // 게시글 조회
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+
+        if (comment.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("You cannot like your own post.");
+        }
+
+        // 좋아요 여부 확인
+        Optional<CommentLike> existingLike = commentLikeRepository.findByUserIdAndPostIdAndCommentId(userId, postId, comment);
+
+        boolean isLiked;
+
+        if (existingLike.isEmpty()) {
+            // 좋아요 추가
+            CommentLike newLike = CommentLike.builder()
+                    .userId(userId)
+                    .userNickname(userNickname)
+                    .commentId(comment)
+                    .build();
+            commentLikeRepository.save(newLike);
+
+            comment.incrementPostLikesCount();
+            isLiked = true;
+        } else {
+            // 좋아요 취소
+            CommentLike like = existingLike.get();
+            commentLikeRepository.delete(like);
+
+            comment.decrementLikeCount();
+            isLiked = false;
+        }
+
+        // 게시글의 변경된 좋아요 수 저장
+        commentRepository.save(comment);
+        return new CommentLikeResponse(isLiked, comment.getLikesCount());
     }
 
     // 사용자 검증 로직
