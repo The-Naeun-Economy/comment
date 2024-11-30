@@ -17,5 +17,5 @@ public interface CommentService {
 
     void deleteComment(Long userId, Long postId, Long commentId);
 
-    CommentLikeResponse toggleLike(Long id, Long userId, Long postId, String userNickname);
+    CommentLikeResponse toggleLike(Long id, Long userId, String userNickname);
 }

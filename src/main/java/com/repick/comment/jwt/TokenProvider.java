@@ -35,13 +35,15 @@ public class TokenProvider {
     }
 
     // 토큰에서 userId 추출
-    public Long getUserIdFromToken(String token) {
+    public Long getUserIdFromToken(String bearerToken) {
+        String token = extractJwtFromRequest(bearerToken);
         Claims claims = parseClaims(token);
         return claims.get("userId", Long.class);
     }
 
     // 토큰에서 nickName 추출
-    public String getNickNameFromToken(String token) {
+    public String getNickNameFromToken(String bearerToken) {
+        String token = extractJwtFromRequest(bearerToken);
         Claims claims = parseClaims(token);
         return claims.get("nickName", String.class);
     }
@@ -53,5 +55,12 @@ public class TokenProvider {
         } catch (ExpiredJwtException e) {
             return e.getClaims();
         }
+    }
+
+    private String extractJwtFromRequest(String bearerToken) {
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }
