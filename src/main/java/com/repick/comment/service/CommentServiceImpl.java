@@ -104,7 +104,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentLikeResponse toggleLike(Long id, Long userId, Long postId, String userNickname) {
+    public CommentLikeResponse toggleLike(Long id, Long userId, String userNickname) {
 
         // 게시글 조회
         Comment comment = commentRepository.findById(id)
@@ -115,7 +115,7 @@ public class CommentServiceImpl implements CommentService {
         }
 
         // 좋아요 여부 확인
-        Optional<CommentLike> existingLike = commentLikeRepository.findByUserIdAndPostIdAndCommentId(userId, postId, comment);
+        Optional<CommentLike> existingLike = commentLikeRepository.findByUserIdAndPostIdAndCommentId(userId, comment);
 
         boolean isLiked;
 
