@@ -115,7 +115,7 @@ public class CommentServiceImpl implements CommentService {
         }
 
         // 좋아요 여부 확인
-        Optional<CommentLike> existingLike = commentLikeRepository.findByUserIdAndPostIdAndCommentId(userId, comment);
+        Optional<CommentLike> existingLike = commentLikeRepository.findByUserIdAndCommentId(userId, comment);
 
         boolean isLiked;
 
