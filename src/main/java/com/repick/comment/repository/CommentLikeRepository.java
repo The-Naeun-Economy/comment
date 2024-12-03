@@ -8,6 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {
 
+    // 특정 댓글의 좋아요 개수를 집계
+    Long countByCommentId(Comment comment);
+
     // 특정 댓글에 대해 좋아요 눌렀는지
     Optional<CommentLike> findByUserIdAndCommentId(Long userId, Comment comment);
 

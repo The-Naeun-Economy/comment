@@ -5,6 +5,7 @@ import com.repick.comment.domain.CommentLike;
 import com.repick.comment.dto.CommentLikeResponse;
 import com.repick.comment.dto.CommentRequest;
 import com.repick.comment.dto.CommentResponse;
+import com.repick.comment.dto.GetMyLikedCommentResponse;
 import com.repick.comment.mapper.CommentMapper;
 import com.repick.comment.repository.CommentCacheRepository;
 import com.repick.comment.repository.CommentLikeRepository;
@@ -43,14 +44,17 @@ public class CommentServiceImpl implements CommentService {
                 .build();
         Comment savedComment = commentRepository.save(comment);
 
-        return CommentMapper.toResponse(savedComment);
+        return CommentMapper.toResponse(savedComment, commentCacheRepository);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<CommentResponse> getCommentsByPostId(Long postId) {
         return commentRepository.findByPostIdAndIsDeletedFalse(postId).stream()
-                .map(CommentMapper::toResponse)
+                .map(comment -> {
+                    Long likeCount = commentLikeRepository.countByCommentId(comment);
+                    return CommentMapper.toResponse(comment, commentCacheRepository);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -58,7 +62,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional(readOnly = true)
     public List<CommentResponse> getMyComments(Long userId) {
         return commentRepository.findByUserIdAndIsDeletedFalse(userId).stream()
-                .map(CommentMapper::toResponse)
+                .map(comment -> CommentMapper.toResponse(comment, commentCacheRepository))
                 .collect(Collectors.toList());
     }
 
@@ -80,7 +84,7 @@ public class CommentServiceImpl implements CommentService {
         // 변경된 댓글 저장
         Comment updatedComment = commentRepository.save(comment);
 
-        return CommentMapper.toResponse(updatedComment);
+        return CommentMapper.toResponse(updatedComment, commentCacheRepository);
     }
 
     @Override
@@ -153,13 +157,14 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public List<CommentLikeResponse> getMyLikedComments(Long userId) {
+    public List<GetMyLikedCommentResponse> getMyLikedComments(Long userId) {
 
         List<CommentLike> likedComments = commentLikeRepository.findByUserId(userId);
 
         return likedComments.stream()
-                .map(like -> new CommentLikeResponse(
-                        true,
+                .map(like -> new GetMyLikedCommentResponse(
+                        like.getCommentId().getId(),
+                        like.getCommentId().getContent(),
                         like.getCommentId().getLikesCount()
                 ))
                 .collect(Collectors.toList());

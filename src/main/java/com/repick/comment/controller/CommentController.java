@@ -3,6 +3,7 @@ package com.repick.comment.controller;
 import com.repick.comment.dto.CommentLikeResponse;
 import com.repick.comment.dto.CommentRequest;
 import com.repick.comment.dto.CommentResponse;
+import com.repick.comment.dto.GetMyLikedCommentResponse;
 import com.repick.comment.jwt.TokenProvider;
 import com.repick.comment.service.CommentService;
 import jakarta.validation.Valid;
@@ -77,12 +78,13 @@ public class CommentController {
 
     // 댓글 목록 조회(마이페이지)
     @GetMapping("/users/me/like")
-    public ResponseEntity<List<CommentLikeResponse>> getMyLikedComments(@RequestHeader String Authorization) {
+    public ResponseEntity<List<GetMyLikedCommentResponse>> getMyLikedComments(@RequestHeader String Authorization) {
         Long userId = tokenProvider.getUserIdFromToken(Authorization);
 
-        List<CommentLikeResponse> likedComments = commentService.getMyLikedComments(userId);
+        List<GetMyLikedCommentResponse> likedComments = commentService.getMyLikedComments(userId);
 
         return ResponseEntity.ok(likedComments);
     }
 
+    // 특정 게시글 좋아요 개수
 }
