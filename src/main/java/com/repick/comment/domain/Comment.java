@@ -35,7 +35,7 @@ public class Comment extends BaseEntity {
     @NotNull
     private String userNickname;
 
-    @Column(name = "comment_content")
+    @Column(name = "comment_content", columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "like_count")
