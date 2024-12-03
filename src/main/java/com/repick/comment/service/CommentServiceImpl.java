@@ -6,6 +6,7 @@ import com.repick.comment.dto.CommentLikeResponse;
 import com.repick.comment.dto.CommentRequest;
 import com.repick.comment.dto.CommentResponse;
 import com.repick.comment.mapper.CommentMapper;
+import com.repick.comment.repository.CommentCacheRepository;
 import com.repick.comment.repository.CommentLikeRepository;
 import com.repick.comment.repository.CommentRepository;
 import java.util.Optional;
@@ -22,9 +23,10 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
+    private final CommentCacheRepository commentCacheRepository;
 
-    @Transactional
     @Override
+    @Transactional
     public CommentResponse createComment(Long userId, String userNickname, Long postId, CommentRequest request) {
 
         if (postId == null || postId <= 0) {
@@ -44,24 +46,24 @@ public class CommentServiceImpl implements CommentService {
         return CommentMapper.toResponse(savedComment);
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public List<CommentResponse> getCommentsByPostId(Long postId) {
         return commentRepository.findByPostIdAndIsDeletedFalse(postId).stream()
                 .map(CommentMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public List<CommentResponse> getMyComments(Long userId) {
         return commentRepository.findByUserIdAndIsDeletedFalse(userId).stream()
                 .map(CommentMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
-    @Transactional
     @Override
+    @Transactional
     public CommentResponse updateComment(Long userId, Long postId, Long commentId, String content) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
@@ -81,8 +83,8 @@ public class CommentServiceImpl implements CommentService {
         return CommentMapper.toResponse(updatedComment);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void deleteComment(Long userId, Long postId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
@@ -104,9 +106,10 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public CommentLikeResponse toggleLike(Long id, Long userId, String userNickname) {
 
-        // 게시글 조회
+        // 댓글 조회
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
 
@@ -139,8 +142,13 @@ public class CommentServiceImpl implements CommentService {
             isLiked = false;
         }
 
-        // 게시글의 변경된 좋아요 수 저장
+        // 캐시에 좋아요 수 저장
+        String cacheKey = commentCacheRepository.getCacheKey() + "::" + id;
+        commentCacheRepository.saveCacheData(cacheKey, comment.getLikesCount());
+
+        // 변경된 좋아요 수 저장
         commentRepository.save(comment);
+
         return new CommentLikeResponse(isLiked, comment.getLikesCount());
     }
 
