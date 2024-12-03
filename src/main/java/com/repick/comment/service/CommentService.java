@@ -18,4 +18,6 @@ public interface CommentService {
     void deleteComment(Long userId, Long postId, Long commentId);
 
     CommentLikeResponse toggleLike(Long id, Long userId, String userNickname);
+
+    List<CommentLikeResponse> getMyLikedComments(Long userId);
 }

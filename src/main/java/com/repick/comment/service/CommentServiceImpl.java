@@ -152,6 +152,20 @@ public class CommentServiceImpl implements CommentService {
         return new CommentLikeResponse(isLiked, comment.getLikesCount());
     }
 
+    @Override
+    public List<CommentLikeResponse> getMyLikedComments(Long userId) {
+
+        List<CommentLike> likedComments = commentLikeRepository.findByUserId(userId);
+
+        return likedComments.stream()
+                .map(like -> new CommentLikeResponse(
+                        true,
+                        like.getCommentId().getLikesCount()
+                ))
+                .collect(Collectors.toList());
+    }
+
+
     // 사용자 검증 로직
     private void validateUserAuthorization(Comment comment, Long userId) {
         if (!comment.getUserId().equals(userId)) {
