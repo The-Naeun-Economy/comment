@@ -34,4 +34,28 @@ public class CommentCacheRepository implements CacheRepository {
     public void deleteCacheData(String cacheKey) {
         redisTemplate.delete(cacheKey);
     }
+
+    // 좋아요 캐시 키 생성
+    public String generateLikeCacheKey(Long commentId) {
+        return String.format("%s::%d::likes", CACHE_KEY, commentId);
+    }
+
+    // 좋아요 수 가져오기
+    public Long getLikeCount(Long commentId) {
+        String cacheKey = generateLikeCacheKey(commentId);
+        Object cachedValue = redisTemplate.opsForValue().get(cacheKey);
+        return cachedValue != null ? (Long) cachedValue : 0L;
+    }
+
+    // 좋아요 수 증가
+    public void incrementLikeCount(Long commentId) {
+        String cacheKey = generateLikeCacheKey(commentId);
+        redisTemplate.opsForValue().increment(cacheKey);
+    }
+
+    // 좋아요 수 감소
+    public void decrementLikeCount(Long commentId) {
+        String cacheKey = generateLikeCacheKey(commentId);
+        redisTemplate.opsForValue().decrement(cacheKey);
+    }
 }

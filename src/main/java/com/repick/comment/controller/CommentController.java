@@ -86,5 +86,4 @@ public class CommentController {
         return ResponseEntity.ok(likedComments);
     }
 
-    // 특정 게시글 좋아요 개수
 }

@@ -5,7 +5,6 @@ import com.repick.comment.client.UserClient;
 import com.repick.comment.domain.Comment;
 import com.repick.comment.dto.CommentRequest;
 import com.repick.comment.dto.CommentResponse;
-import com.repick.comment.dto.UserResponse;
 import com.repick.comment.repository.CommentRepository;
 import com.repick.comment.service.CommentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;

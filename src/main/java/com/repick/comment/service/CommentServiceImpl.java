@@ -10,6 +10,7 @@ import com.repick.comment.mapper.CommentMapper;
 import com.repick.comment.repository.CommentCacheRepository;
 import com.repick.comment.repository.CommentLikeRepository;
 import com.repick.comment.repository.CommentRepository;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,16 +45,33 @@ public class CommentServiceImpl implements CommentService {
                 .build();
         Comment savedComment = commentRepository.save(comment);
 
-        return CommentMapper.toResponse(savedComment, commentCacheRepository);
+        Long likeCount = 0L;
+
+        return CommentMapper.toResponse(savedComment, likeCount);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<CommentResponse> getCommentsByPostId(Long postId) {
-        return commentRepository.findByPostIdAndIsDeletedFalse(postId).stream()
+        List<Comment> comments = commentRepository.findByPostIdAndIsDeletedFalse(postId);
+
+        // 댓글 ID 리스트 생성
+        List<Long> commentIds = comments.stream()
+                .map(Comment::getId)
+                .toList();
+
+        // 좋아요 수를 캐시에서 일괄 조회
+        Map<Long, Long> likeCounts = commentIds.stream()
+                .collect(Collectors.toMap(
+                        commentId -> commentId,
+                        commentCacheRepository::getLikeCount // 캐시에서 좋아요 수 가져오기
+                ));
+
+        // 댓글과 좋아요 수를 함께 매핑
+        return comments.stream()
                 .map(comment -> {
-                    Long likeCount = commentLikeRepository.countByCommentId(comment);
-                    return CommentMapper.toResponse(comment, commentCacheRepository);
+                    Long likeCount = likeCounts.getOrDefault(comment.getId(), 0L); // 캐시에서 가져온 좋아요 수 활용
+                    return CommentMapper.toResponse(comment, likeCount);
                 })
                 .collect(Collectors.toList());
     }
@@ -61,8 +79,15 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional(readOnly = true)
     public List<CommentResponse> getMyComments(Long userId) {
-        return commentRepository.findByUserIdAndIsDeletedFalse(userId).stream()
-                .map(comment -> CommentMapper.toResponse(comment, commentCacheRepository))
+        // 댓글 조회
+        List<Comment> comments = commentRepository.findByUserIdAndIsDeletedFalse(userId);
+
+        // 좋아요 수 조회 및 매핑
+        return comments.stream()
+                .map(comment -> {
+                    Long likeCount = commentCacheRepository.getLikeCount(comment.getId()); // 캐시에서 좋아요 수 조회
+                    return CommentMapper.toResponse(comment, likeCount); // 좋아요 수와 함께 매핑
+                })
                 .collect(Collectors.toList());
     }
 
@@ -78,14 +103,18 @@ public class CommentServiceImpl implements CommentService {
             throw new IllegalArgumentException("Post ID mismatch");
         }
 
-        /// 댓글 업데이트
         comment.updateContent(content);
 
         // 변경된 댓글 저장
         Comment updatedComment = commentRepository.save(comment);
 
-        return CommentMapper.toResponse(updatedComment, commentCacheRepository);
+        // 좋아요 수 조회
+        Long likeCount = commentCacheRepository.getLikeCount(updatedComment.getId());
+
+        // 업데이트된 댓글과 좋아요 수 반환
+        return CommentMapper.toResponse(updatedComment, likeCount);
     }
+
 
     @Override
     @Transactional
@@ -135,25 +164,25 @@ public class CommentServiceImpl implements CommentService {
                     .build();
             commentLikeRepository.save(newLike);
 
-            comment.incrementPostLikesCount();
+            commentCacheRepository.incrementLikeCount(id);
             isLiked = true;
         } else {
             // 좋아요 취소
             CommentLike like = existingLike.get();
             commentLikeRepository.delete(like);
 
-            comment.decrementLikeCount();
+            commentCacheRepository.decrementLikeCount(id);
             isLiked = false;
         }
 
-        // 캐시에 좋아요 수 저장
-        String cacheKey = commentCacheRepository.getCacheKey() + "::" + id;
-        commentCacheRepository.saveCacheData(cacheKey, comment.getLikesCount());
+        // 캐시에서 좋아요 수 가져오기
+        Long updatedLikeCount = commentCacheRepository.getLikeCount(id);
 
-        // 변경된 좋아요 수 저장
+        // 데이터베이스의 좋아요 수와 동기화
+        comment.syncLikesCount(updatedLikeCount);
         commentRepository.save(comment);
 
-        return new CommentLikeResponse(isLiked, comment.getLikesCount());
+        return new CommentLikeResponse(isLiked, updatedLikeCount);
     }
 
     @Override
