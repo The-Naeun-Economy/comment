@@ -10,3 +10,8 @@ services:
       MYSQL_PASSWORD: 1234
     ports:
       - "3311:3306"
+  redis:
+    image: redis:latest
+    container_name: comment-redis
+    ports:
+      - "6379:6379"
