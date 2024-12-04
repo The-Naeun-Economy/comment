@@ -4,6 +4,7 @@ import com.repick.comment.dto.CommentLikeResponse;
 import com.repick.comment.dto.CommentRequest;
 import com.repick.comment.dto.CommentResponse;
 
+import com.repick.comment.dto.GetMyLikedCommentResponse;
 import java.util.List;
 
 public interface CommentService {
@@ -18,4 +19,6 @@ public interface CommentService {
     void deleteComment(Long userId, Long postId, Long commentId);
 
     CommentLikeResponse toggleLike(Long id, Long userId, String userNickname);
+
+    List<GetMyLikedCommentResponse> getMyLikedComments(Long userId);
 }

@@ -3,6 +3,7 @@ package com.repick.comment.controller;
 import com.repick.comment.dto.CommentLikeResponse;
 import com.repick.comment.dto.CommentRequest;
 import com.repick.comment.dto.CommentResponse;
+import com.repick.comment.dto.GetMyLikedCommentResponse;
 import com.repick.comment.jwt.TokenProvider;
 import com.repick.comment.service.CommentService;
 import jakarta.validation.Valid;
@@ -38,7 +39,7 @@ public class CommentController {
         return commentService.getCommentsByPostId(postId);
     }
 
-    @GetMapping("/my-comments")
+    @GetMapping("/users/me")
     public List<CommentResponse> getMyComments(@PathVariable Long postId,
                                                @RequestHeader String Authorization) {
         Long userId = tokenProvider.getUserIdFromToken(Authorization);
@@ -66,13 +67,23 @@ public class CommentController {
 
     // 댓글 좋아요
     @PostMapping("/{id}/like")
-    public ResponseEntity<CommentLikeResponse> likeComment (@PathVariable Long id,
-                                                        @RequestHeader String Authorization) {
+    public ResponseEntity<CommentLikeResponse> likeComment(@PathVariable Long id,
+                                                           @RequestHeader String Authorization) {
         Long userId = tokenProvider.getUserIdFromToken(Authorization);
         String userNickname = tokenProvider.getNickNameFromToken(Authorization);
 
         CommentLikeResponse response = commentService.toggleLike(id, userId, userNickname);
         return ResponseEntity.ok(response);
+    }
+
+    // 댓글 목록 조회(마이페이지)
+    @GetMapping("/users/me/like")
+    public ResponseEntity<List<GetMyLikedCommentResponse>> getMyLikedComments(@RequestHeader String Authorization) {
+        Long userId = tokenProvider.getUserIdFromToken(Authorization);
+
+        List<GetMyLikedCommentResponse> likedComments = commentService.getMyLikedComments(userId);
+
+        return ResponseEntity.ok(likedComments);
     }
 
 }

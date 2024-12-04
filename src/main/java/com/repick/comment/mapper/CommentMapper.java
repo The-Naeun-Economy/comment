@@ -5,13 +5,14 @@ import com.repick.comment.dto.CommentResponse;
 
 public class CommentMapper {
 
-    public static CommentResponse toResponse(Comment comment) {
+    public static CommentResponse toResponse(Comment comment, Long likeCount) {
         return CommentResponse.builder()
                 .id(comment.getId())
                 .postId(comment.getPostId())
                 .userId(comment.getUserId())
                 .userNickname(comment.getUserNickname())
                 .content(comment.getContent())
+                .likeCount(likeCount)
                 .isDeleted(comment.isDeleted())
                 .createdAt(comment.getCreatedAt() != null ? comment.getCreatedAt().toString() : null)
                 .updatedAt(comment.getUpdatedAt() != null ? comment.getUpdatedAt().toString() : null)
