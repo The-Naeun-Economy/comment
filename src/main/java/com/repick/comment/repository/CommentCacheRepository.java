@@ -44,7 +44,17 @@ public class CommentCacheRepository implements CacheRepository {
     public Long getLikeCount(Long commentId) {
         String cacheKey = generateLikeCacheKey(commentId);
         Object cachedValue = redisTemplate.opsForValue().get(cacheKey);
-        return cachedValue != null ? (Long) cachedValue : 0L;
+
+        if (cachedValue != null) {
+            try {
+                // Object를 String으로 변환 후 Long으로 변환
+                return Long.valueOf(cachedValue.toString());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Redis에 저장된 좋아요 데이터가 숫자가 아닙니다: " + cachedValue);
+            }
+        }
+
+        return 0L;
     }
 
     // 좋아요 수 증가
