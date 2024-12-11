@@ -1,6 +1,9 @@
 package com.repick.comment.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.repick.comment.domain.Comment;
+import com.repick.comment.domain.CommentEvent;
 import com.repick.comment.domain.CommentLike;
 import com.repick.comment.dto.CommentLikeResponse;
 import com.repick.comment.dto.CommentRequest;
@@ -13,6 +16,7 @@ import com.repick.comment.repository.CommentRepository;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +26,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
+
+    private final KafkaTemplate<String, byte[]> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
@@ -44,6 +51,14 @@ public class CommentServiceImpl implements CommentService {
                 .isDeleted(false)
                 .build();
         Comment savedComment = commentRepository.save(comment);
+
+        CommentEvent event = new CommentEvent(postId, savedComment.getId(), "CREATE");
+        try {
+            byte[] message = objectMapper.writeValueAsBytes(event); // JSON 직렬화
+            kafkaTemplate.send("comment-topic", message);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Kafka 메시지 직렬화 실패", e);
+        }
 
         Long likeCount = 0L;
 
