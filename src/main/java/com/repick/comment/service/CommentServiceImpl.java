@@ -52,7 +52,13 @@ public class CommentServiceImpl implements CommentService {
                 .build();
         Comment savedComment = commentRepository.save(comment);
 
-        CommentEvent event = new CommentEvent(postId, savedComment.getId(), "CREATE");
+        // Kafka 이벤트 생성 및 전송
+        CommentEvent event = new CommentEvent(
+                savedComment.getPostId(),
+                savedComment.getId(),
+                "CREATE"
+        );
+
         try {
             byte[] message = objectMapper.writeValueAsBytes(event); // JSON 직렬화
             kafkaTemplate.send("comment-topic", message);
@@ -136,6 +142,20 @@ public class CommentServiceImpl implements CommentService {
     public void deleteComment(Long userId, Long postId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+
+        // Kafka 이벤트 생성 및 전송
+        CommentEvent event = new CommentEvent(
+                comment.getPostId(),
+                commentId,
+                "DELETE"
+        );
+
+        try {
+            byte[] message = objectMapper.writeValueAsBytes(event); // JSON 직렬화
+            kafkaTemplate.send("comment-topic", message);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Kafka 메시지 직렬화 실패", e);
+        }
 
         validateUserAuthorization(comment, userId);
 
