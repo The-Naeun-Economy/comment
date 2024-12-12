@@ -56,7 +56,9 @@ public class CommentServiceImpl implements CommentService {
         CommentEvent event = new CommentEvent(
                 savedComment.getPostId(),
                 savedComment.getId(),
-                "CREATE"
+                "CREATE",
+                savedComment.getUserNickname(),
+                savedComment.getContent()
         );
 
         try {
