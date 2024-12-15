@@ -56,7 +56,9 @@ public class CommentServiceImpl implements CommentService {
         CommentEvent event = new CommentEvent(
                 savedComment.getPostId(),
                 savedComment.getId(),
-                "CREATE"
+                "CREATE",
+                savedComment.getUserNickname(),
+                savedComment.getContent()
         );
 
         try {
@@ -147,7 +149,9 @@ public class CommentServiceImpl implements CommentService {
         CommentEvent event = new CommentEvent(
                 comment.getPostId(),
                 commentId,
-                "DELETE"
+                "DELETE",
+                comment.getUserNickname(),
+                comment.getContent()
         );
 
         try {

@@ -11,4 +11,6 @@ public class CommentEvent {
     private Long postId;
     private Long commentId;
     private String action;  // "CREATE", "DELETE"
+    private String userNickname;
+    private String content;
 }
